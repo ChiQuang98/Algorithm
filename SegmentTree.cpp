@@ -38,11 +38,11 @@ const long long MOD = 1000000007LL, INF = 1e9, LINF = 1e18;
 int query(int node, int start, int end, int l, int r)
 {
 	if (start > end || start > r || end < l) return -LINF;
-//    if(r < start || end < l) 
-//    {
-//        // range represented by a node is completely outside the given range
-//        return 0;
-//    }
+   if(r < start || end < l) 
+   {
+       // range represented by a node is completely outside the given range
+       return 0;
+   }
     if(l <= start && end <= r)
     {
         // range represented by a node is completely inside the given range
