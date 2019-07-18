@@ -1,0 +1,276 @@
+#include <iostream>
+
+using namespace std;
+
+#define FOR(i,a,b) for(int i=(a); i<=(b); i++)
+const int MAXN = 100;
+const int CLEAN = 0;
+const int DIRTY = 1;
+const int OBS = 2;
+const int oo = 999999999;
+
+class ToaDo{
+public:
+	int x,y;
+	ToaDo(int x = 0, int y = 0)
+	{
+		this->x = x;
+		this->y = y;
+	}
+
+	ToaDo operator+(ToaDo& other)
+	{
+		return ToaDo(x+other.x, y+other.y);
+	}
+
+	bool operator==(const ToaDo& other)
+	{
+		return x==other.x && y==other.y;
+	}
+
+};
+
+template<class T>
+class Vector{
+public:
+	int size;
+	T arr[20];
+	Vector()
+	{
+		size = 0;
+	}
+	void push(const T& a)
+	{
+		arr[size++] = a;
+	}
+
+	void clear()
+	{
+		size = 0;
+	}
+
+	T operator[](int index)
+	{
+		return arr[index];
+	}
+};
+
+template<class T>
+class Queue{
+public:
+	T *arr;
+	int head,tail;
+	int SIZE;
+	Queue()
+	{
+		SIZE = (MAXN+1)*(MAXN+1);
+		arr = new T[SIZE];
+		head = tail = 0;
+	}
+	~Queue()
+	{
+		delete[] arr;
+	}
+
+	bool isEmpty()
+	{
+		return head >= tail;
+	}
+
+	void push(const T& a)
+	{
+		arr[tail] = a;
+		tail = (tail+1)%SIZE;
+	}
+
+	T pop()
+	{
+		T t = arr[head];
+		head = (head+1)%SIZE;
+		return t;
+	}
+};
+
+int N,M,K,KQ;
+int a[MAXN+2][MAXN+2];
+int d[MAXN+2][MAXN+2];
+int MinD[MAXN+2][MAXN+2];
+ToaDo next[4] = {ToaDo(0,1),ToaDo(0,-1),ToaDo(1,0),ToaDo(-1,0)};
+ToaDo start;
+ToaDo ds[20];//luu cac diem bi ban
+bool ds_check[20];//kiem tra xem diem da duoc lau sach hay chua
+int T[20];
+
+void F();
+int BFS(const ToaDo& start, const ToaDo& finish);
+void backtrack(const int& k);
+bool check(const int& k);
+int canculate();
+
+int main()
+{
+	freopen("CleaningRobot_in.txt","r",stdin);
+	freopen("CleaningRobot_out.txt","w",stdout);
+	int T;
+	cin >> T;
+	FOR(i,1,T)
+	{
+		cout << "Case #" << i << endl;
+		F();
+	}
+	return 0;
+}
+
+void F()
+{
+	cin >> N >> M;
+	K = 0;
+	FOR(i,1,N)
+		FOR(j,1,M)
+	{
+		cin >> a[i][j];
+		if(a[i][j] == 3)
+			start = ToaDo(i,j);
+		if(a[i][j] == DIRTY)
+		{
+			K++;
+			ds[K] = ToaDo(i,j);
+			ds_check[K] = false;//so diem 
+		}
+	}
+//khoi tao cac vien ngoai la chuong ngai vat
+	FOR(k,1,N)
+		a[k][0] = a[k][M+1] = OBS;
+	FOR(k,1,M)
+		a[0][k] = a[N+1][k] = OBS;
+
+
+	// Tinh het duong di tu dinh nay toi dinh khac
+	ds[0] = start;//danh sach cac dinh
+	//cout << "\n=====\n";
+	FOR(i,0,K)
+	{
+		FOR(j,0,K)
+		{
+			if(i != j)
+			{
+				int d = BFS(ds[i],ds[j]);
+				MinD[i][j] = d;
+				//cout << MinD[i][j] << " ";
+			}else{
+				//cout << "x" << " ";
+			}
+		}
+		//cout << endl;
+	}
+	//cout << "\n=====\n";
+
+	KQ = oo;
+	backtrack(1);
+	if(KQ == oo)
+		cout << "-1" << endl;
+	else 
+		cout << KQ << endl;
+}
+
+// Tìm đường đi ngắn nhất từ start tới finish
+int BFS(const ToaDo& start, const ToaDo& finish)
+{
+	//khoi tao mang danh dau la chua di
+	FOR(i,0,N+1)
+		FOR(j,0,M+1)
+		d[i][j] = -1;
+
+	Queue<ToaDo> q;
+	q.push(start);
+	d[start.x][start.y] = 0;
+
+	ToaDo current,nextMove;
+	while(!q.isEmpty()){
+		current = q.pop();
+		// Tim diem xung quanh chua duoc xet
+		FOR(i,0,3)
+		{
+			nextMove = current + ::next[i];
+
+			if(a[nextMove.x][nextMove.y] != OBS && d[nextMove.x][nextMove.y] == -1)
+			{
+				if(nextMove == finish)
+				{
+					return d[current.x][current.y] + 1;
+				}
+				d[nextMove.x][nextMove.y] = d[current.x][current.y] + 1;
+				q.push(nextMove);
+			}
+		}
+	}
+
+	return -1;
+}
+
+void backtrack(const int& k)
+{
+	// Chon diem di den dinh thu k
+	if(k == K+1){
+		// Tinh
+		int s = canculate();
+		if(s < KQ)
+			KQ = s;
+	}else{
+		FOR(i,1,K)
+		{
+			// Chọn điểm i là điểm đến tiếp theo
+			if(ds_check[i] == false)
+			{
+				ds_check[i] = true;
+				T[k] = i;
+
+				if(check(k))
+					backtrack(k+1);
+				
+				ds_check[i] = false;
+			}
+		}
+	}
+}
+
+bool check(const int& k)
+{
+	int s = 0,d;
+	//ToaDo current = start;
+	int ci = 0;
+	FOR(i,1,k)
+	{
+		//d = BFS(current,ds[T[i]]);
+		d = MinD[ci][T[i]];
+		if(d == -1)
+			return false;
+		s += d;
+		//current = ds[T[i]];
+		ci = T[i];
+	}
+
+	if(s <= KQ)
+		return true;
+	return false;
+}
+
+int canculate()
+{
+	int s = 0,d;
+	//ToaDo current = start;
+	int ci = 0;
+	FOR(i,1,K)
+	{
+		//d = BFS(current,ds[T[i]]);
+		d = MinD[ci][T[i]];
+		//cout << T[i] << " ";
+		if(d == -1)
+			return oo;
+		s += d;
+		//current = ds[T[i]];
+		ci = T[i];
+	}
+	//cout << endl;
+	return s;
+}
