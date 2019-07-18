@@ -1,0 +1,75 @@
+#include<iostream>
+    using namespace std;
+    int Edge[150][150];
+    int visited[110];
+    int size=0,Q[1000000];
+    int Max=0;
+    void push(int val){
+        Q[size] = val;
+        size++;
+    }
+    void pop(){
+        for(int i=0;i<size-1;i++){
+            Q[i] = Q[i+1];
+        }
+        Q[size-1] = -1;
+        size--;
+    }
+    int front(){
+        return Q[0];
+    }
+    void BFS(int start){
+        
+        push(start);
+        visited[start] = 1;
+        while(size!=0){
+            int s= front();
+            pop();
+            for(int i=1;i<=100;i++){
+                if(visited[i]==0&&Edge[s][i]==1){
+                    visited[i] = visited[s] + 1;
+                    if(Max<visited[i]){
+                        Max = visited[i];
+                    }
+                    push(i);
+                }
+            }
+        }
+    }
+    int main()
+    {
+        //freopen("input.txt","r",stdin);
+        int len,start;
+        int st,end;
+        for(int t=1;t<=10;t++){
+            Max=-1;
+            while(size!=0)
+            {
+                pop();
+            }
+            for(int i=1;i<=100;i++)
+            {
+                visited[i] = 0;
+            }
+            for(int i=1;i<=100;i++){
+                for(int j=1;j<=100;j++){
+                    Edge[i][j] = 0;
+                }
+            }
+            cin>>len>>start;
+            int lenTmp = len/2;
+            for(int i=1;i<=lenTmp;i++){
+                cin>>st>>end;
+                Edge[st][end]=1;
+            }
+            BFS(start);
+            for(int i=100;i>=1;i--){
+                if(visited[i]==Max){
+                    cout<<"#"<<t<<" "<<i<<endl;
+                    break;
+                }
+            }
+        }
+        
+        return 0;
+    }
