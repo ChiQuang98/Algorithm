@@ -1,0 +1,113 @@
+#include<iostream>
+using namespace std;
+char St[1000];
+int size = 0;
+void push(char val){
+	St[size] = val;
+	size++;
+}
+void pop(){
+	St[size-1]='e';
+	size--;
+}
+char front(){
+	return St[size-1];
+}
+int getPirotity(char toantu){
+	if(toantu=='*') return 2;
+	else if(toantu=='+') return 1;
+	else return -1;
+}
+
+int St1[10000];
+int size1 = 0;
+void push1(int val){
+	St1[size1] = val;
+	size1++;
+}
+void pop1(){
+	St1[size1-1]=-1;
+	size1--;
+}
+int front1(){
+	return St1[size1-1];
+}
+char interStr[100000];
+char out[100000];
+int main()
+{
+	//freopen("input.txt","r",stdin);
+	int len;
+	for(int t=1;t<=10;t++){
+		int lenOut=0;
+		push('N');
+		while(size!=0){
+			pop();
+		}
+		while(size1!=0){
+			pop1();
+		}
+		cin>>len;
+		for(int i=0;i<len;i++){
+			cin>>interStr[i];
+		}
+		for(int i=0;i<len;i++){
+			if(interStr[i]!='('&&interStr[i]!=')'&&interStr[i]!='+'&&interStr[i]!='*'){
+				out[lenOut] = interStr[i];
+				lenOut++;
+			}
+			else if(interStr[i]=='('){
+				push('(');
+			}
+			else if(interStr[i]==')'){
+				while(front()!='N'&&front()!='('){
+					char c = front();
+					pop();
+					out[lenOut] = c;
+					lenOut++;
+				}
+				if(front()=='('){
+					pop();
+				}
+			}
+			else{
+				while(size!=0&&getPirotity(interStr[i])<getPirotity(front())){
+					char c = front();
+					pop();
+					out[lenOut] = c;
+					lenOut++;
+				}
+				push(interStr[i]);
+			}
+		}
+		while(size!=0){
+			char c = front();
+			pop();
+			out[lenOut] = c;
+			lenOut++;
+		}
+			int rs=0;
+		for(int i=0;i<lenOut;i++){
+			if(out[i]!='+'&&out[i]!='*'){
+				push1(out[i]-'0');
+			}
+			else{
+				int t1 = front1();
+				pop1();
+				int t2 = front1();
+				pop1();
+				if(out[i]=='+'){
+					int temp = t1+t2;
+					rs=temp;
+					push1(rs);
+				}
+				else{
+					rs=t1*t2;
+					push1(rs);
+				}
+			}
+		}
+		cout<<"#"<<t<<" "<<front1()<<endl;
+	}
+	return 0;
+}
