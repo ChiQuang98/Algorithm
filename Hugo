@@ -1,3 +1,166 @@
+//coppyright CHIQUANG
+#include<iostream>
+#define FIRE 10
+#define LAKE 9
+#define EXIT 8
+using namespace std;
+int N,M,SR,SC;
+struct Point{
+	int x,y;
+};
+int numFire,numLake,numExit;
+int mapDiamond[16][16];
+int mapFire[16][16];
+int mapLake[16][16];
+int mapExit[16][16];
+int visisted[16][16];
+int fireTimeCount[16][16];
+Point Queue[10000];
+int top=0,low=0;
+void push(Point value){
+	Queue[++top] = value;
+}
+Point pop(){
+	return Queue[++low];
+}
+bool isEmpty(){
+	return top==low;
+}
+int moveX[] = {1,0,-1,0};
+int moveY[] = {0,1,0,-1};
+bool isInMap(int x,int y){
+	if(x>=1&&x<=N&&y>=1&&y<=M) return true;
+	return false;
+}
+void BFS(){
+	for(int i=1;i<=N;i++){
+		for(int j=1;j<=M;j++){
+			if(mapFire[i][j]==FIRE){
+				Point fire;fire.x = i,fire.y=j;
+				push(fire);
+				visisted[i][j] = 1;
+				fireTimeCount[i][j] = 0;//khoi tao cac dom lua dau tien thi mat 0h de den
+			}
+			else{
+				fireTimeCount[i][j] = -1;//chua di den
+			}
+		}
+	}
+	while(!isEmpty()){
+		Point currFire = pop();
+		for(int i=0;i<4;i++){
+			int xFireNext = currFire.x + moveX[i];
+			int yFireNext = currFire.y + moveY[i];
+			Point nextFire; nextFire.x = xFireNext,nextFire.y = yFireNext;
+			if(isInMap(xFireNext,yFireNext)&&mapLake[xFireNext][yFireNext]!=LAKE&&!visisted[xFireNext][yFireNext]){
+				visisted[xFireNext][yFireNext] = 1;
+				fireTimeCount[xFireNext][yFireNext] = fireTimeCount[currFire.x][currFire.y] + 1;
+				push(nextFire);
+			}
+		}
+	}
+//	for(int i=1;i<=N;i++){
+//		for(int j=1;j<=M;j++){
+//			cout<<fireTimeCount[i][j]<<" ";
+//		}
+//		cout<<endl;
+//	}
+//	cout<<endl;
+}
+int ans = 0;
+void backtrack(Point P,int time,int cntDM){
+	//kiem tra time tai vi tri P da bi lua thieu vao hay chua
+	int timeP = fireTimeCount[P.x][P.y];
+	if(fireTimeCount[P.x][P.y]!=-1&&time>=timeP){
+		return;
+	}
+
+	if(mapExit[P.x][P.y]==EXIT){
+		//neu time thay duong di thi
+		if(cntDM>ans){
+			ans = cntDM;
+		}
+	}
+	
+	for(int i=0;i<4;i++){
+		int xFireNext = P.x + moveX[i];
+		int yFireNext = P.y + moveY[i];
+		Point next;next.x = xFireNext,next.y = yFireNext;
+		if(isInMap(xFireNext,yFireNext)&&!visisted[xFireNext][yFireNext]){
+			visisted[xFireNext][yFireNext] = 1;
+			if(mapLake[xFireNext][yFireNext]==LAKE){
+				backtrack(next,time+2,cntDM+mapDiamond[xFireNext][yFireNext]);
+				visisted[xFireNext][yFireNext] = 0;
+			}
+			else{
+				backtrack(next,time+1,cntDM+mapDiamond[xFireNext][yFireNext]);
+				visisted[xFireNext][yFireNext] = 0;
+			}
+			
+		}
+	}	
+	
+}
+int main()
+{
+	freopen("input.txt","r",stdin);
+	int T;
+	cin>>T;
+	for(int tc=1;tc<=T;tc++){
+		cin>>N>>M>>SR>>SC;
+		cin>>numFire;
+		for(int i=1;i<=N;i++){
+			for(int j=1;j<=M;j++){
+				mapExit[i][j] = 0;
+				mapLake[i][j] = 0;
+				mapFire[i][j] = 0;
+			}
+		}
+		for(int i=0;i<numFire;i++){
+			int fx,fy;
+			cin>>fx>>fy;
+			mapFire[fx][fy] = FIRE;
+		}
+
+		cin>>numLake;
+		for(int i=0;i<numLake;i++){
+			int lx,ly;
+			cin>>lx>>ly;
+			mapLake[lx][ly] = LAKE;
+		}
+		cin>>numExit;
+		for(int i=0;i<numExit;i++){
+			int ex,ey;
+			cin>>ex>>ey;
+			mapExit[ex][ey] = EXIT;
+		}
+		for(int i=1;i<=N;i++){
+			for(int j=1;j<=M;j++){
+				cin>>mapDiamond[i][j];
+				visisted[i][j] = 0;
+			}
+		}
+		BFS();
+		low = top = 0;
+		for(int i=1;i<=N;i++){
+			for(int j=1;j<=M;j++){
+				visisted[i][j] = 0;
+			}
+		}
+		Point st;
+		st.x = SR,st.y = SC;
+		ans = 0;
+		visisted[SR][SC] = 1;
+		backtrack(st,0,mapDiamond[SR][SC]);
+		cout<<"Case #"<<tc<<endl;
+		if(ans==0) cout<<-1<<endl;
+		else
+		cout<<ans<<endl;
+//		break;
+	}
+	return 0;
+}
+/*
 Có thử thách dành cho Hugo như sau: Hugo được thả vào 1 khu rừng có rất nhiều kim cương, tuy nhiên đồng thời lúc đó có các đám cháy xuất hiện. Các đám cháy này sẽ lây lan ra các khu vực lân cận theo bốn hướng sau 1 giờ. Tuy nhiên trong khu rừng có một số hồ nhỏ, và lửa không thể cháy lan trên hồ.
 
 Thời gian để Hugo di chuyển giữa các khu đất là 1 giờ, qua khu hồ là 2 giờ. Hãy giúp Hugo thoát khỏi khu rừng cùng với số lượng kim cương lớn nhất có thể và đảm bảo Hugo không bị lửa thiêu.
@@ -67,3 +230,4 @@ Case #4
 Case #5
 
 328
+*/
